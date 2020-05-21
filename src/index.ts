@@ -5,8 +5,12 @@ import logger from 'morgan';
 import cors from 'cors';
 
 import auth from './auth';
-import userController from './controllers/userController';
+
 import userRepository from './dataAccess/userRepository';
+import currenciesRepository from './dataAccess/currenciesRepository';
+
+import userController from './controllers/userController';
+import currencyController from './controllers/currencyController';
 
 const app = express();
 const port = process.env.PORT;
@@ -18,11 +22,8 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 // app.use('/*', auth);
 
-app.get('/', (req, res) => {
-    res.send('Hello worldddsss!');
-});
-
 userController(app, userRepository());
+currencyController(app, currenciesRepository());
 
 app.listen(port, () => {
     console.log(`server started at http://localhost:${port}`);

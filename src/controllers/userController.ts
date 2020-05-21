@@ -14,8 +14,6 @@ const userController = (app: Express, userRepository: IUserRepository) => {
 
     app.get(`${basePath}/:id`, async (req, res) => {
         const userId = req.params.id;
-        const ss = await userRepository.getByEmail('email@gmail.com');
-        console.log(ss);
         const user = await userRepository.get(userId);
 
         res.json(user);

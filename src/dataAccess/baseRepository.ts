@@ -6,7 +6,9 @@ export interface IRepository<T, R> {
     update: (toUpdate: R) => Promise<void>;
     create: (toCreate: R) => Promise<string>;
     remove: (id: string) => Promise<void>;
-    collection: firebase.firestore.CollectionReference<firebase.firestore.DocumentData>;
+    collection: firebase.firestore.CollectionReference<
+        firebase.firestore.DocumentData
+    >;
 }
 
 const baseRepository = <T, R>(collectionName: string): IRepository<T, R> => {
@@ -31,7 +33,11 @@ const baseRepository = <T, R>(collectionName: string): IRepository<T, R> => {
     };
 
     const update = async (toUpdate: R): Promise<void> => {
-        return collection.doc((toUpdate as any).id).set(toUpdate);
+        const id = (toUpdate as any).id;
+
+        delete (toUpdate as any).id;
+
+        return collection.doc(id).set(toUpdate);
     };
 
     const create = async (toCreate: R): Promise<string> => {
