@@ -1,10 +1,10 @@
 import { Express } from 'express';
 
-import { IOperationsRepository } from '../dataAccess/operationsRepository';
+import { IOperationRepository } from '../dataAccess/operationRepository';
 
-const operrationsController = (
+const operationController = (
     app: Express,
-    operationsRepository: IOperationsRepository
+    operationsRepository: IOperationRepository
 ) => {
     const basePath = '/operation';
 
@@ -40,4 +40,4 @@ const operrationsController = (
     });
 };
 
-export default operrationsController;
+export default operationController;

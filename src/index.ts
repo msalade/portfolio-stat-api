@@ -7,12 +7,14 @@ import cors from 'cors';
 import auth from './auth';
 
 import userRepository from './dataAccess/userRepository';
-import currenciesRepository from './dataAccess/currenciesRepository';
-import operationsRepository from './dataAccess/operationsRepository';
+import currencyRepository from './dataAccess/currencyRepository';
+import operationRepository from './dataAccess/operationRepository';
+import transactionRepository from './dataAccess/transactionRepository';
 
 import userController from './controllers/userController';
 import currencyController from './controllers/currencyController';
-import operationsController from './controllers/operationsController';
+import operationsController from './controllers/operationController';
+import transactionsController from './controllers/transactionsController';
 
 const app = express();
 const port = process.env.PORT;
@@ -25,8 +27,9 @@ app.use(cookieParser());
 // app.use('/*', auth);
 
 userController(app, userRepository());
-currencyController(app, currenciesRepository());
-operationsController(app, operationsRepository());
+currencyController(app, currencyRepository());
+operationsController(app, operationRepository());
+transactionsController(app, transactionRepository());
 
 app.listen(port, () => {
     console.log(`server started at http://localhost:${port}`);

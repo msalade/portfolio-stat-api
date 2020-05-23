@@ -2,9 +2,9 @@ import baseRepository, { IRepository } from './baseRepository';
 import Operation, { OperationRepo, OperationWithRef } from '../dataTypes/operation';
 import app from './firebaseApp';
 
-export type IOperationsRepository = IRepository<Operation, OperationRepo>;
+export type IOperationRepository = IRepository<Operation, OperationRepo>;
 
-const operationsRepository = (): IOperationsRepository => {
+const operationRepository = (): IOperationRepository => {
     const currColName = 'currencies';
     const collectionName = 'operations';
 
@@ -53,4 +53,4 @@ const operationsRepository = (): IOperationsRepository => {
     };
 };
 
-export default operationsRepository;
+export default operationRepository;

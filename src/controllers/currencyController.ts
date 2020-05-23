@@ -1,10 +1,10 @@
 import { Express } from 'express';
 
-import { ICurrenciesRepository } from '../dataAccess/currenciesRepository';
+import { ICurrencyRepository } from '../dataAccess/currencyRepository';
 
 const currencyController = (
     app: Express,
-    currenciesRepository: ICurrenciesRepository
+    currenciesRepository: ICurrencyRepository
 ) => {
     const basePath = '/currency';
 
