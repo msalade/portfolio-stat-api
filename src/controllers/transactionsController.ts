@@ -8,6 +8,12 @@ const transactionController = (
 ) => {
     const basePath = '/transaction';
 
+    app.get(`${basePath}/all`, async (req, res) => {
+        const transactions = await currenciesRepository.getAll();
+        
+        res.json(transactions);
+    });
+
     app.get(`${basePath}/:id`, async (req, res) => {
         const transactionId = req.params.id;
         const transaction = await currenciesRepository.get(transactionId);

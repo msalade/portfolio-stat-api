@@ -1,6 +1,7 @@
 import Currency from './currency';
 
 interface BaseOperation {
+    id: string;
     ammount: number;
 }
 

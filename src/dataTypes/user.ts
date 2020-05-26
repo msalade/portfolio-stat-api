@@ -5,8 +5,8 @@ interface BaseUser {
     country: string;
     email: string;
     gender: string;
-    name: String;
-    timezone: String;
+    name: string;
+    timezone: string;
     username: string;
 }
 

@@ -4,6 +4,7 @@ import firebase from 'firebase';
 import Timestamp = firebase.firestore.Timestamp;
 
 interface BaseTransaction {
+    id: string;
     comment: string;
     date: Date;
     exchange: string;

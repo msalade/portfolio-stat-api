@@ -9,7 +9,7 @@ export type IUserRepository = IRepository<User, UserRepo> & {
 const userRepository = (): IUserRepository => {
     const currColName = 'currencies';
     const collectionName = 'users';
-    
+
     const currencies = app.firestore().collection(currColName);
     const repo = baseRepository<UserRepo, UserWithRef>(collectionName);
 
@@ -25,6 +25,7 @@ const userRepository = (): IUserRepository => {
 
                         const res = {
                             ...user,
+                            id: doc.id,
                             currency: haveCurrency
                                 ? await user.currency
                                       .get()
