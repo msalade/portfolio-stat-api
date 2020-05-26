@@ -156,6 +156,7 @@ const transactionRepository = (): ITransactionRepository => {
     const update = async (transacion: TransactionRef): Promise<void> => {
         const transacionToUpadte = {
             ...transacion,
+            date: new Date(transacion.date as any),
             buy: (await operations.doc(`${transacion.buy}`).get()).ref,
             sell: (await operations.doc(`${transacion.sell}`).get()).ref,
             user: (await users.doc(`${transacion.user}`).get()).ref

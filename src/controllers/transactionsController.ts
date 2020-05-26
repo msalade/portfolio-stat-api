@@ -8,10 +8,19 @@ const transactionController = (
 ) => {
     const basePath = '/transaction';
 
-    app.get(`${basePath}/all`, async (req, res) => {
+    app.get(`${basePath}/all/:userEmail?`, async (req, res) => {
+        const userEmail = req.params.userEmail;
         const transactions = await currenciesRepository.getAll();
-        
-        res.json(transactions);
+        const filteredTransactions = transactions
+            .filter(
+                transaction =>
+                    !userEmail || transaction.user.email === userEmail
+            )
+            .sort(
+                (a, b) => (new Date(b.date) as any) - (new Date(a.date) as any)
+            );
+
+        res.json(filteredTransactions);
     });
 
     app.get(`${basePath}/:id`, async (req, res) => {
