@@ -1,31 +1,35 @@
 import { Express } from 'express';
 
 import { ITransactionRepository } from '../dataAccess/transactionRepository';
+import { getUserEmail } from '../auth';
 
 const transactionController = (
     app: Express,
-    currenciesRepository: ITransactionRepository
+    transactionsRepository: ITransactionRepository
 ) => {
     const basePath = '/transaction';
 
+    app.get(`${basePath}/all/me`, async (req, res) => {
+        const userEmail = await getUserEmail(req);
+        const transactions = (
+            await transactionsRepository.getByEmail(userEmail)
+        ).sort((a, b) => (new Date(b.date) as any) - (new Date(a.date) as any));
+
+        res.json(transactions);
+    });
+
     app.get(`${basePath}/all/:userEmail?`, async (req, res) => {
         const userEmail = req.params.userEmail;
-        const transactions = await currenciesRepository.getAll();
-        const filteredTransactions = transactions
-            .filter(
-                transaction =>
-                    !userEmail || transaction.user.email === userEmail
-            )
-            .sort(
-                (a, b) => (new Date(b.date) as any) - (new Date(a.date) as any)
-            );
+        const transactions = (
+            await transactionsRepository.getByEmail(userEmail)
+        ).sort((a, b) => (new Date(b.date) as any) - (new Date(a.date) as any));
 
-        res.json(filteredTransactions);
+        res.json(transactions);
     });
 
     app.get(`${basePath}/:id`, async (req, res) => {
         const transactionId = req.params.id;
-        const transaction = await currenciesRepository.get(transactionId);
+        const transaction = await transactionsRepository.get(transactionId);
 
         res.json(transaction);
     });
@@ -33,7 +37,7 @@ const transactionController = (
     app.post(`${basePath}`, async (req, res) => {
         const transactionToUpdate = req.body;
 
-        await currenciesRepository.update(transactionToUpdate);
+        await transactionsRepository.update(transactionToUpdate);
 
         res.send('Ok');
     });
@@ -41,7 +45,9 @@ const transactionController = (
     app.put(`${basePath}`, async (req, res) => {
         const newTransaction = req.body;
 
-        const transactionId = await currenciesRepository.create(newTransaction);
+        const transactionId = await transactionsRepository.create(
+            newTransaction
+        );
 
         res.json({ id: transactionId });
     });
@@ -49,7 +55,7 @@ const transactionController = (
     app.delete(`${basePath}/:id`, async (req, res) => {
         const transactionId = req.params.id;
 
-        await currenciesRepository.remove(transactionId);
+        await transactionsRepository.remove(transactionId);
 
         res.send('Ok');
     });

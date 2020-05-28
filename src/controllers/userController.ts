@@ -1,9 +1,17 @@
 import { Express } from 'express';
 
 import { IUserRepository } from '../dataAccess/userRepository';
+import { getUserEmail } from '../auth';
 
 const userController = (app: Express, userRepository: IUserRepository) => {
     const basePath = '/user';
+
+    app.get(`${basePath}/me`, async (req, res) => {
+        const email = await getUserEmail(req);
+        const result = await userRepository.getByEmail(email);        
+
+        res.json(result);
+    });
 
     app.get(`${basePath}/byEmail/:email`, async (req, res) => {
         const email = req.params.email;

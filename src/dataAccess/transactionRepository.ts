@@ -6,7 +6,12 @@ import Transaction, {
 } from '../dataTypes/transacion';
 import app from './firebaseApp';
 
-export type ITransactionRepository = IRepository<Transaction, TransactionRepo>;
+export type ITransactionRepository = IRepository<
+    Transaction,
+    TransactionRepo
+> & {
+    getByEmail: (email: string) => Promise<Transaction[]>;
+};
 
 const transactionRepository = (): ITransactionRepository => {
     const operColName = 'operations';
@@ -17,126 +22,75 @@ const transactionRepository = (): ITransactionRepository => {
     const users = app.firestore().collection(userColName);
     const repo = baseRepository<Transaction, TransactionRepo>(collectionName);
 
+    const getTransactionData = async (transaction: Transaction) => {
+        const idDate = !!(transaction.date as any).toDate;
+
+        return {
+            ...transaction,
+            date: idDate
+                ? (transaction.date as any).toDate()
+                : transaction.date,
+            buy: await (transaction.buy as any)
+                .get()
+                .then(async (oper: any) => {
+                    const operation = oper.data();
+
+                    return {
+                        ...operation,
+                        currency: await operation.currency
+                            .get()
+                            .then((cur: any) => ({
+                                ...cur.data(),
+                                id: cur.id
+                            })),
+                        id: oper.id
+                    };
+                }),
+            sell: await (transaction.sell as any)
+                .get()
+                .then(async (oper: any) => {
+                    const operation = oper.data();
+
+                    return {
+                        ...operation,
+                        currency: await operation.currency
+                            .get()
+                            .then((cur: any) => ({
+                                ...cur.data(),
+                                id: cur.id
+                            })),
+                        id: oper.id
+                    };
+                }),
+            user: await (transaction.user as any)
+                .get()
+                .then(async (user: any) => {
+                    const userData = user.data();
+
+                    return {
+                        ...userData,
+                        currency: await userData.currency
+                            .get()
+                            .then((cur: any) => ({
+                                ...cur.data(),
+                                id: cur.id
+                            })),
+                        id: user.id
+                    };
+                })
+        };
+    };
+
     const getAll = async (): Promise<Transaction[]> => {
-        const promTransactions = await repo.getAll().then(async transactions =>
-            transactions.map(async transaction => ({
-                ...transaction,
-                date: (transaction.date as any).toDate(),
-                buy: await (transaction.buy as any)
-                    .get()
-                    .then(async (oper: any) => {
-                        const operation = oper.data();
-
-                        return {
-                            ...operation,
-                            currency: await operation.currency
-                                .get()
-                                .then((cur: any) => ({
-                                    ...cur.data(),
-                                    id: cur.id
-                                })),
-                            id: oper.id
-                        };
-                    }),
-                sell: await (transaction.sell as any)
-                    .get()
-                    .then(async (oper: any) => {
-                        const operation = oper.data();
-
-                        return {
-                            ...operation,
-                            currency: await operation.currency
-                                .get()
-                                .then((cur: any) => ({
-                                    ...cur.data(),
-                                    id: cur.id
-                                })),
-                            id: oper.id
-                        };
-                    }),
-                user: await (transaction.user as any)
-                    .get()
-                    .then(async (user: any) => {
-                        const userData = user.data();
-
-                        return {
-                            ...userData,
-                            currency: await userData.currency
-                                .get()
-                                .then((cur: any) => ({
-                                    ...cur.data(),
-                                    id: cur.id
-                                })),
-                            id: user.id
-                        };
-                    })
-            }))
-        );
+        const promTransactions = await repo
+            .getAll()
+            .then(async transactions => transactions.map(getTransactionData));
 
         return Promise.all(promTransactions);
     };
 
     const get = async (id: string): Promise<Transaction> => {
-        return repo.get(id).then(async transaction => {
-            const idDate = !!(transaction.date as any).toDate;
-
-            const res = {
-                ...transaction,
-                date: idDate
-                    ? (transaction.date as any).toDate()
-                    : transaction.date,
-                buy: await (transaction.buy as any)
-                    .get()
-                    .then(async (oper: any) => {
-                        const operation = oper.data();
-
-                        return {
-                            ...operation,
-                            currency: await operation.currency
-                                .get()
-                                .then((cur: any) => ({
-                                    ...cur.data(),
-                                    id: cur.id
-                                })),
-                            id: oper.id
-                        };
-                    }),
-                sell: await (transaction.sell as any)
-                    .get()
-                    .then(async (oper: any) => {
-                        const operation = oper.data();
-
-                        return {
-                            ...operation,
-                            currency: await operation.currency
-                                .get()
-                                .then((cur: any) => ({
-                                    ...cur.data(),
-                                    id: cur.id
-                                })),
-                            id: oper.id
-                        };
-                    }),
-                user: await (transaction.user as any)
-                    .get()
-                    .then(async (user: any) => {
-                        const userData = user.data();
-
-                        return {
-                            ...userData,
-                            currency: await userData.currency
-                                .get()
-                                .then((cur: any) => ({
-                                    ...cur.data(),
-                                    id: cur.id
-                                })),
-                            id: user.id
-                        };
-                    })
-            };
-
-            return res;
-        });
+        return repo.get(id).then(getTransactionData);
     };
 
     const create = async (transacion: TransactionRef): Promise<string> => {
@@ -165,12 +119,24 @@ const transactionRepository = (): ITransactionRepository => {
         return repo.update(transacionToUpadte);
     };
 
+    const getByEmail = async (email: string): Promise<Transaction[]> => {
+        const transactions = await getAll();
+        const filteredTransactions = transactions
+            .filter(transaction => !email || transaction.user.email === email)
+            .sort(
+                (a, b) => (new Date(b.date) as any) - (new Date(a.date) as any)
+            );
+
+        return filteredTransactions;
+    };
+
     return {
         ...repo,
         get,
         create,
         update,
-        getAll
+        getAll,
+        getByEmail
     };
 };
 

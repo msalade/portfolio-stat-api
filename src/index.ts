@@ -15,6 +15,7 @@ import userController from './controllers/userController';
 import currencyController from './controllers/currencyController';
 import operationsController from './controllers/operationController';
 import transactionsController from './controllers/transactionsController';
+import analiticController from './controllers/analiticController';
 
 const app = express();
 const port = process.env.PORT;
@@ -30,6 +31,7 @@ userController(app, userRepository());
 currencyController(app, currencyRepository());
 operationsController(app, operationRepository());
 transactionsController(app, transactionRepository());
+analiticController(app, userRepository(), transactionRepository());
 
 app.listen(port, () => {
     console.log(`server started at http://localhost:${port}`);

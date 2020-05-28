@@ -25,4 +25,10 @@ const auth = (req: Request, res: Response, next: NextFunction) => {
     }
 };
 
+export const getUserEmail = async (req: Request) =>
+    admin
+        .auth()
+        .verifyIdToken(req.headers.authtoken as string)
+        .then(user => user.email);
+
 export default auth;
