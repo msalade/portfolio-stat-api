@@ -9,6 +9,16 @@ import Transaction from '../dataTypes/transacion';
 const cryptocompare = require('cryptocompare');
 cryptocompare.setApiKey(process.env.CRYPTOCOMPARE_API_KEY);
 
+const toObject = (keys: string[], values: any[]) => {
+    const obj: any = {};
+
+    keys.forEach((key, index) => {
+        obj[key] = values[index];
+    });
+
+    return obj;
+};
+
 const analiticController = (
     app: Express,
     userRepository: IUserRepository,
@@ -78,14 +88,23 @@ const analiticController = (
                 change: number;
             };
         } = {};
+        const currenciesHelper: {
+            symbol: string;
+            isFiat: boolean;
+        }[] = [];
         const transactions = await getTransactions(req);
 
-        const addOrCreate = (key: string, value: number) => {
+        const addOrCreate = (key: string, value: number, isFiat: boolean) => {
             if (currencies[key]) {
                 currencies[key].raw += value;
             } else {
+                currenciesHelper.push({
+                    symbol: key,
+                    isFiat
+                });
+
                 currencies[key] = {
-                    raw: 0,
+                    raw: value,
                     byCurr: 0,
                     change: 0
                 };
@@ -96,17 +115,43 @@ const analiticController = (
             const buy = transaction.buy;
             const sell = transaction.sell;
 
-            addOrCreate(buy.currency.symbol, buy.ammount);
-            addOrCreate(sell.currency.symbol, -sell.ammount);
+            addOrCreate(
+                buy.currency.symbol,
+                buy.ammount,
+                buy.currency.type === 'fiat'
+            );
+            addOrCreate(
+                sell.currency.symbol,
+                -sell.ammount,
+                sell.currency.type === 'fiat'
+            );
         });
 
-        const curPriceSymbol = Object.keys(currencies);
-        const prices = await cryptocompare.price(currency, curPriceSymbol);
-        const histPrices = await cryptocompare.priceHistorical(
-            currency,
-            curPriceSymbol,
-            yesterday
+        const pricesList = await Promise.all(
+            currenciesHelper.map(
+                async ({ isFiat, symbol }) =>
+                    (await cryptocompare.price(symbol, [currency]))[currency]
+            )
         );
+
+        const curPriceSymbol = currenciesHelper.map(cur => cur.symbol);
+
+        const prices = toObject(curPriceSymbol, pricesList);
+
+        const histPricesList = await Promise.all(
+            currenciesHelper.map(
+                async ({ isFiat, symbol }) =>
+                    (
+                        await cryptocompare.priceHistorical(
+                            symbol,
+                            [currency],
+                            yesterday
+                        )
+                    )[currency]
+            )
+        );
+
+        const histPrices = toObject(curPriceSymbol, histPricesList);
 
         for (let symbol in currencies) {
             currencies[symbol].byCurr = currencies[symbol].raw * prices[symbol];
