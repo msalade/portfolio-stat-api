@@ -86,20 +86,14 @@ const analiticController = (
                 change: number;
             };
         } = {};
-        const currenciesHelper: {
-            symbol: string;
-            isFiat: boolean;
-        }[] = [];
+        const currenciesHelper: string[] = [];
         const transactions = await getTransactions(req);
 
         const addOrCreate = (key: string, value: number, isFiat: boolean) => {
             if (currencies[key]) {
                 currencies[key].raw += value;
             } else {
-                currenciesHelper.push({
-                    symbol: key,
-                    isFiat
-                });
+                currenciesHelper.push(key);
 
                 currencies[key] = {
                     raw: value,
@@ -127,18 +121,16 @@ const analiticController = (
 
         const pricesList = await Promise.all(
             currenciesHelper.map(
-                async ({ isFiat, symbol }) =>
+                async symbol =>
                     (await cryptocompare.price(symbol, [currency]))[currency]
             )
         );
 
-        const curPriceSymbol = currenciesHelper.map(cur => cur.symbol);
-
-        const prices = toObject(curPriceSymbol, pricesList);
+        const prices = toObject(currenciesHelper, pricesList);
 
         const histPricesList = await Promise.all(
             currenciesHelper.map(
-                async ({ isFiat, symbol }) =>
+                async symbol =>
                     (
                         await cryptocompare.priceHistorical(
                             symbol,
@@ -149,7 +141,7 @@ const analiticController = (
             )
         );
 
-        const histPrices = toObject(curPriceSymbol, histPricesList);
+        const histPrices = toObject(currenciesHelper, histPricesList);
 
         for (let symbol in currencies) {
             currencies[symbol].byCurr = currencies[symbol].raw * prices[symbol];
