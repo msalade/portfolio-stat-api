@@ -1,7 +1,6 @@
 import { Express, Request } from 'express';
 import { eachMonthOfInterval, isSameMonth, addDays } from 'date-fns';
 
-import { IUserRepository } from '../dataAccess/userRepository';
 import { ITransactionRepository } from '../dataAccess/transactionRepository';
 import { getUserEmail } from '../auth';
 import Transaction from '../dataTypes/transacion';
@@ -21,7 +20,6 @@ const toObject = (keys: string[], values: any[]) => {
 
 const analiticController = (
     app: Express,
-    userRepository: IUserRepository,
     transactionRepository: ITransactionRepository
 ) => {
     const basePath = '/analitic';

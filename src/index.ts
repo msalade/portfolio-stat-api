@@ -31,7 +31,7 @@ userController(app, userRepository());
 currencyController(app, currencyRepository());
 operationsController(app, operationRepository());
 transactionsController(app, transactionRepository());
-analiticController(app, userRepository(), transactionRepository());
+analiticController(app, transactionRepository());
 
 app.listen(port, () => {
     console.log(`server started at http://localhost:${port}`);
